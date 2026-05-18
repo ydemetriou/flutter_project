@@ -21,8 +21,14 @@ class ExpenseCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.green.shade100,
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.green.shade100,
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
           child: const Icon(Icons.euro, color: Colors.green),
         ),
         title: Text(

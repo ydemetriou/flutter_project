@@ -1,28 +1,20 @@
 import 'package:flutter/material.dart';
 
 class DialogUtils {
-  static Future<bool> showConfirmDelete(
+  static void showConfirmDelete(
     BuildContext context, {
-    String title = 'Επιβεβαίωση διαγραφής',
-    required String content,
-  }) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Άκυρο'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Διαγραφή'),
-          ),
-        ],
+    String message = 'Θέλεις σίγουρα να διαγράψεις;',
+    required VoidCallback onConfirm,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: SnackBarAction(
+          label: 'Διαγραφή',
+          onPressed: onConfirm,
+        ),
+        duration: const Duration(seconds: 5),
       ),
     );
-    return result ?? false;
   }
 }

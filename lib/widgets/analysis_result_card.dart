@@ -17,7 +17,19 @@ class AnalysisResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: CircleAvatar(child: Text('${index + 1}')),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.blue,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '${index + 1}',
+            style: const TextStyle(color: Colors.white),
+          ),
+        ),
         title: Text(summary.categoryTitle),
         trailing: Text(
           MoneyUtils.formatEuro(summary.totalAmount),

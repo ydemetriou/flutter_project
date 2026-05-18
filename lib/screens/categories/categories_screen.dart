@@ -19,7 +19,8 @@ class CategoriesScreen extends StatefulWidget {
 class _CategoriesScreenState extends State<CategoriesScreen> {
   final CategoryRepository _categoryRepository = CategoryRepository();
 
-  late Future<List<ExpenseCategory>> _categoriesFuture;
+  List<ExpenseCategory>? _categories;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -27,14 +28,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     _loadCategories();
   }
 
-  void _loadCategories() {
-    _categoriesFuture = _categoryRepository.getAllCategories();
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await _categoryRepository.getAllCategories();
+      if (!mounted) return;
+      setState(() {
+        _categories = categories;
+        _hasError = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _hasError = true);
+    }
   }
 
   void _refreshCategories() {
-    setState(() {
-      _loadCategories();
-    });
+    setState(() => _categories = null);
+    _loadCategories();
   }
 
   Future<void> _openCategoryForm() async {
@@ -61,64 +71,53 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
   }
 
-  Future<void> _deleteCategory(ExpenseCategory category) async {
+  void _deleteCategory(ExpenseCategory category) {
     if (category.id == null) return;
 
-    final confirmed = await DialogUtils.showConfirmDelete(
+    DialogUtils.showConfirmDelete(
       context,
-      title: 'Διαγραφή κατηγορίας',
-      content:
-          'Θέλεις σίγουρα να διαγράψεις την κατηγορία "${category.title}";',
+      message: 'Θέλεις σίγουρα να διαγράψεις την κατηγορία "${category.title}";',
+      onConfirm: () async {
+        await _categoryRepository.deleteCategory(category.id!);
+        if (!mounted) return;
+        SnackbarUtils.showMessage(context, 'Η κατηγορία διαγράφηκε');
+        _refreshCategories();
+      },
     );
+  }
 
-    if (confirmed) {
-      await _categoryRepository.deleteCategory(category.id!);
-      if (!mounted) return;
-      SnackbarUtils.showMessage(context, 'Η κατηγορία διαγράφηκε');
-      _refreshCategories();
+  Widget _buildBody() {
+    if (_hasError) {
+      return const Center(child: Text('Κάτι πήγε στραβά. Δοκίμασε ξανά.'));
     }
+    if (_categories == null) {
+      return const LoadingView(message: 'Φόρτωση κατηγοριών...');
+    }
+    if (_categories!.isEmpty) {
+      return const EmptyState(
+        icon: Icons.category,
+        title: 'Δεν υπάρχουν κατηγορίες',
+        message: 'Πάτησε + για να δημιουργήσεις την πρώτη κατηγορία.',
+      );
+    }
+    return ListView.builder(
+      itemCount: _categories!.length,
+      itemBuilder: (context, index) {
+        final category = _categories![index];
+        return CategoryListTile(
+          category: category,
+          onEdit: () => _editCategory(category),
+          onDelete: () => _deleteCategory(category),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Κατηγορίες εξόδων')),
-      body: FutureBuilder<List<ExpenseCategory>>(
-        future: _categoriesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const LoadingView(message: 'Φόρτωση κατηγοριών...');
-          }
-
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text('Κάτι πήγε στραβά. Δοκίμασε ξανά.'),
-            );
-          }
-
-          final categories = snapshot.data ?? [];
-
-          if (categories.isEmpty) {
-            return const EmptyState(
-              icon: Icons.category,
-              title: 'Δεν υπάρχουν κατηγορίες',
-              message: 'Πάτησε + για να δημιουργήσεις την πρώτη κατηγορία.',
-            );
-          }
-
-          return ListView.builder(
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return CategoryListTile(
-                category: category,
-                onEdit: () => _editCategory(category),
-                onDelete: () => _deleteCategory(category),
-              );
-            },
-          );
-        },
-      ),
+      body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCategoryForm,
         child: const Icon(Icons.add),

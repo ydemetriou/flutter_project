@@ -251,18 +251,29 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   }
 
   Widget _buildCategoryDropdown() {
-    return DropdownButtonFormField<int>(
+    return FormField<int>(
       initialValue: _selectedCategoryId,
-      decoration: const InputDecoration(
-        labelText: 'Κατηγορία',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.category),
-      ),
-      items: _categories!
-          .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.title)))
-          .toList(),
-      onChanged: (value) => setState(() => _selectedCategoryId = value),
       validator: (value) => value == null ? 'Επίλεξε κατηγορία' : null,
+      builder: (state) => InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Κατηγορία',
+          border: const OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.category),
+          errorText: state.hasError ? state.errorText : null,
+        ),
+        child: DropdownButton<int>(
+          value: _selectedCategoryId,
+          isExpanded: true,
+          underline: const SizedBox(),
+          items: _categories!
+              .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.title)))
+              .toList(),
+          onChanged: (value) {
+            setState(() => _selectedCategoryId = value);
+            state.didChange(value);
+          },
+        ),
+      ),
     );
   }
 

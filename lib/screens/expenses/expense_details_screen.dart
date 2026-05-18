@@ -28,22 +28,20 @@ class ExpenseDetailsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _deleteExpense(BuildContext context) async {
+  void _deleteExpense(BuildContext context) {
     if (expense.id == null) return;
 
-    final confirmed = await DialogUtils.showConfirmDelete(
+    DialogUtils.showConfirmDelete(
       context,
-      title: 'Διαγραφή εξόδου',
-      content: 'Θέλεις σίγουρα να διαγράψεις αυτό το έξοδο;',
+      message: 'Θέλεις σίγουρα να διαγράψεις αυτό το έξοδο;',
+      onConfirm: () async {
+        await ExpenseRepository().deleteExpense(expense.id!);
+        if (context.mounted) {
+          SnackbarUtils.showMessage(context, 'Το έξοδο διαγράφηκε');
+          Navigator.pop(context, true);
+        }
+      },
     );
-
-    if (confirmed) {
-      await ExpenseRepository().deleteExpense(expense.id!);
-      if (context.mounted) {
-        SnackbarUtils.showMessage(context, 'Το έξοδο διαγράφηκε');
-        Navigator.pop(context, true);
-      }
-    }
   }
 
   @override
