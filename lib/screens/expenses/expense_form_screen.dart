@@ -294,11 +294,24 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
               'Τοποθεσία',
               style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              key: ValueKey(_locationName),
+              initialValue: _locationName,
+              decoration: const InputDecoration(
+                labelText: 'Όνομα τοποθεσίας (προαιρετικό)',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.edit_location_alt),
+              ),
+              onChanged: (value) {
+                _locationName = value.trim().isEmpty ? null : value.trim();
+              },
             ),
             const SizedBox(height: 12),
             if (_locationName != null)
